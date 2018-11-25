@@ -4,6 +4,7 @@
       <h3>test mes: {{user.name}}</h3>
       <!-- <span class="color">{{color}}</span> -->
     </div>
+    <button></button>
   </div>
 </template>
 

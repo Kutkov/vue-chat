@@ -11,9 +11,10 @@
           <div 
             v-for="message in messages"
             :key="message.id"
+            
           >
             <span class="text-info">[{{message.name}}]: </span>
-            <span>{{message.message}}</span>
+            <span :id="message.id" @click="clickMessage">{{message.message}}</span>
             <span class="text-secondary time">{{message.timestamp}}</span>
           </div>
         </div>
@@ -22,13 +23,14 @@
         <CreateMessage :name="name" />
       </div>
     </div>
-    <Users :users="users"></Users>
+    <UpdateMessage @newMessages="newMessageMethod" :id="target"></UpdateMessage>
+
   </div>
 </template>
 
 <script>
 import CreateMessage from '@/components/CreateMessage'
-import Users from '@/components/Users'
+import UpdateMessage from '@/components/UpdateMessage'
 import fb from '@/firebase/init'
 import moment from 'moment'
 
@@ -37,12 +39,22 @@ export default {
   props: ['name'],
   components: {
     CreateMessage,
-    Users
+    UpdateMessage
   },
   data() {
     return {
       messages: [],
-      users: []
+      newMessage: '',
+      target: ''
+    }
+  },
+  methods: {
+    newMessageMethod(data) {
+      this.newMessage = data
+    },
+    clickMessage(target) {
+      console.log('target = ', target, target.target.id)
+      this.target = target.target.id
     }
   },
   created() {
@@ -50,7 +62,7 @@ export default {
 
     ref.onSnapshot(snapshot => {
       snapshot.docChanges().forEach(change => {
-        if (change.type = 'added') {
+        if (change.type === 'added') {
           let doc = change.doc
           this.messages.push({
             id: doc.id,
@@ -58,13 +70,25 @@ export default {
             message: doc.data().message,
             timestamp: moment(doc.data().timestamp).format('LTS')
           })
-          this.users.push({
-            name: doc.data().name
+
+          // this.users.push({
+          //   name: doc.data().name
+          // })
+        }
+        if (change.type === "modified") {
+          this.messages.forEach((test, index, arr) => {
+            if(test.id === this.target) {
+              arr[index].message = this.newMessage
+            }
           })
-          // console.dir(this.messages)
+            console.log("Modified city: ");
+        }
+        if (change.type === "removed") {
+            console.log("Removed city: ");
         }
       })
     })
+
   }
 }
 </script>
